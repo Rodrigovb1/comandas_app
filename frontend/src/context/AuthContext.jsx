@@ -1,5 +1,6 @@
 import { createContext, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import showSnackbar from "../utils/snackbar";
 
 // Criação do contexto
 const AuthContext = createContext();
@@ -18,12 +19,13 @@ export const AuthProvider = ({ children }) => {
     // Função para login
     // ainda com dados fixos, posteriormente será implementado chamada à AP
     const login = (cpf, senha) => {
+        // cpf === "12345678900" && senha === "bolinhas")
         if (cpf === "abc" && senha === "bolinhas") {
             setIsAuthenticated(true);
             sessionStorage.setItem("loginRealizado", "true");
             navigate("/home");
         } else {
-            alert("Usuário ou senha inválidos!");
+            showSnackbar('Erro ao realizar login', 'error');
         }
     };
 

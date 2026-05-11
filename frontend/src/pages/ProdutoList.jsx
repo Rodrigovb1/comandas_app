@@ -3,6 +3,8 @@ import { FiberNew } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import PageLayout from "../components/common/PageLayout";
 import ActionButtons from "../components/common/ActionButtons";
+import showConfirm from '../utils/confirm';
+import showSnackbar from '../utils/snackbar';
 
 function ProdutoList() {
     const navigate = useNavigate();
@@ -22,7 +24,16 @@ function ProdutoList() {
     const formatCurrency = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
     const handleView = (produto) => console.log("Visualizar produto:", produto);
     const handleEdit = (produto) => navigate(`/produto/${produto.id}`);
-    const handleDelete = (produto) => console.log("Excluir produto:", produto);
+    const handleDelete = (produto) => {
+        showConfirm(
+            'Excluir Produto',
+            `Tem certeza que deseja excluir o produto "${produto.nome}"?`,
+            () => {
+                console.log("Excluir produto:", produto);
+                showSnackbar('Produto excluído com sucesso!', 'success');
+            }
+        );
+    };
     
     const columns = [
         { field: 'id', headerName: 'ID' },

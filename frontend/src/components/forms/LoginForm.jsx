@@ -3,10 +3,14 @@ import { useAuth } from "../../context/AuthContext";
 import { TextField, Button, Box, Typography, Paper, Avatar } from "@mui/material";
 import { RestaurantMenu as MenuIcon } from '@mui/icons-material';
 import useValidationRules from "../../hooks/useValidationRules";
+import { useMasks } from "../../hooks/useMasks";
 
 const LoginForm = () => {
 
     const validationRules = useValidationRules();
+    // Máscara para CPF do login, comentado agora para poder digitar letras no campo de usuário
+    // const { applyCpfMask, cleanCpf } = useMasks();
+
     // hook para gerenciar o formulário
     // useForm é usado para gerenciar o estado do formulário, como os valores dos campos e as validações.
     // retorna um objeto com várias propriedades e métodos, como control, handleSubmit, reset e formState.
@@ -49,10 +53,17 @@ const LoginForm = () => {
                         rules={ validationRules.cpf }
                         render={({ field }) => (
                             <TextField
-                                {...field} fullWidth label="Usuário" margin="normal"
+                                {...field} fullWidth label="Usuário (CPF)" margin="normal"
                                 error={!!errors.cpf}
                                 helperText={errors.cpf?.message}
                                 sx={{ mb: 2 }}
+                                // Comentado para permitir digitar letras no campo de usuário, já que o login é feito com um CPF fixo para teste
+                                // onChange={(e) => {
+                                //     const value = cleanCpf(e.target.value);
+                                //     field.onChange(value);
+                                // }}
+                                // value={field.value ? applyCpfMask(field.value) : ''}
+                                // inputProps={{ maxLength: 14 }}
                             />
                         )}
                     />
