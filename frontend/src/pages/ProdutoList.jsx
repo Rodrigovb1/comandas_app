@@ -123,12 +123,13 @@ function ProdutoList() {
     return (
         <PageLayout title="Produtos" actions={actions}>
             <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-                <TableContainer component={Paper}>
+                <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
                     <Table>
-                        <TableHead>
+                        <TableHead sx={{ backgroundColor: 'primary.main' }}>
                             <TableRow>
                                 {columns.map((column, index) => (
-                                <TableCell key={index} sx={{ fontWeight: 600 }}>
+                                <TableCell key={index} align={column.field === 'actions' ? 'center' : 'left'}
+                                sx={{ color: 'white', fontWeight: 600, width: column.field === 'actions' ? 140 : 'auto' }}>
                                     {column.headerName || column.header}
                                 </TableCell>
                                 ))}
