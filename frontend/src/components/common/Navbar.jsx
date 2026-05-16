@@ -1,8 +1,9 @@
-import { AppBar, Toolbar, Typography, Button, Box, IconButton, Tooltip, Avatar, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, Box, IconButton, Tooltip, Avatar, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Chip } from '@mui/material';
 import { Dashboard, People, Group, RestaurantMenu, Receipt, PointOfSale, Logout, AccountCircle, Menu as MenuIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "../../context/AuthContext";
 import { useState } from 'react';
+import UserProfile from './UserProfile';
 
 const Navbar = () => {
 
@@ -12,10 +13,13 @@ const Navbar = () => {
     // useAuth é um hook personalizado que fornece acesso ao contexto de autenticação
     // logouut é uma função que realiza o logout do usuário
     // isAuthenticated é um booleano que indica se o usuário está autenticado ou não
-    const { isAuthenticated, logout } = useAuth();
+    const { isAuthenticated, logout, user } = useAuth(); // user mostra as info de quem logou
 
     // Estado para controlar a abertura do drawer mobile
     const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+
+    // Estado para controlar a abertura do menu de perfil
+    const [profileAnchorEl, setProfileAnchorEl] = useState(null); 
     
     // Chama a função de logout do contexto de autenticação
     const handleLogout = () => {
@@ -36,30 +40,40 @@ const Navbar = () => {
         setMobileDrawerOpen(!mobileDrawerOpen);
     };
 
+    // Handlers para abrir o menu de perfil
+    const handleProfileMenuOpen = (event) => {
+        setProfileAnchorEl(event.currentTarget);
+    };
+
+    // Handler para fechar o menu de perfil
+    const handleProfileMenuClose = () => {
+        setProfileAnchorEl(null);
+    };
+
     // Componente do drawer mobile
-        // parte 1 - copiar da próxima página
-            const drawer = (
-                <Box onClick={handleDrawerToggle} sx={{ textAlign: 'left', width: 250 }}>
-                    <Box sx={{ p: 2, borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
-                        <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 600 }}>
-                            Menu
-                        </Typography>
-                    </Box>
-                    <List>
-                        {menuItems.map((item) => (
-                            <ListItem key={item.path} onClick={() => navigate(item.path)} sx={{ '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.08)'} }}><ListItemIcon sx={{ color: 'inherit' }}>
-                                {item.icon}
-                            </ListItemIcon>
-                            <ListItemText primary={item.label} />
-                        </ListItem>
-                    ))}
-                </List>
-                <Divider />
-                <List>
-                    <ListItem onClick={handleLogout} sx={{ '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.08)' } }}>
-                        <ListItemIcon sx={{ color: 'error.main' }}>
-                            <Logout />
+    const drawer = (
+        <Box onClick={handleDrawerToggle} sx={{ textAlign: 'left', width: 250 }}>
+            <Box sx={{ p: 2, borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+                <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 600 }}>
+                    Menu
+                </Typography>
+            </Box>
+            <List>
+                {menuItems.map((item) => (
+                    <ListItem key={item.path} onClick={() => navigate(item.path)} sx={{ '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.08)'} }}>
+                        <ListItemIcon sx={{ color: 'inherit' }}>
+                            {item.icon}
                         </ListItemIcon>
+                        <ListItemText primary={item.label} />
+                    </ListItem>
+                ))}
+            </List>
+            <Divider />
+            <List>
+                <ListItem onClick={handleLogout} sx={{ '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.08)' } }}>
+                    <ListItemIcon sx={{ color: 'error.main' }}>
+                        <Logout />
+                    </ListItemIcon>
                     <ListItemText primary="Sair" sx={{ color: 'error.main' }} />
                 </ListItem>
             </List>
@@ -67,7 +81,6 @@ const Navbar = () => {
     );
 
     // Componente do navbar
-    // parte 2 - copiar da próxima página
     return (
         <AppBar position="sticky" elevation={2}>
             <Toolbar sx={{ minHeight: 64, px: { xs: 1, sm: 2 } }}>
@@ -93,9 +106,6 @@ const Navbar = () => {
                 </Box>
                 {isAuthenticated && (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        
-                        {/* parte 3 - copiar menus da próxima página */}
-
                         {/* Menu Desktop - sm e acima */}
                         <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 1 }}>
                             {menuItems.map((item) => (
@@ -103,23 +113,19 @@ const Navbar = () => {
                                     <Button
                                         color="inherit"
                                         onClick={() => navigate(item.path)}
-                                        sx={{
-                                            minWidth: 'auto', px: 1.5, py: 1, borderRadius: 2, alignItems: 'center', gap: 0.5,
-                                            '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }
-                                        }}
+                                        sx={{ minWidth: 'auto', px: 1.5, py: 1, borderRadius: 2, alignItems: 'center', gap: 0.5, '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' } }}
                                     >
                                         {item.icon}
                                         <Typography variant="body2" sx={{ ml: 0.5 }}>{item.label}</Typography>
                                     </Button>
                                 </Tooltip>
                             ))}
-                            <Tooltip title="Perfil" arrow>
-                                <IconButton color="inherit">
-                                    <Avatar sx={{ width: 32, height: 32, bgcolor: '#f59e0b' }}>
-                                        <AccountCircle />
-                                    </Avatar>
-                                </IconButton>
-                            </Tooltip>
+                            {/* Menu de perfil - recebe user de useAuth e mostra a primeira letra do nome */}
+                            <IconButton color="inherit" onClick={handleProfileMenuOpen}>
+                                <Avatar sx={{ width: 32, height: 32, bgcolor: '#f59e0b' }}>
+                                    {user?.nome ? user.nome.charAt(0).toUpperCase() : <AccountCircle />}
+                                </Avatar>
+                            </IconButton>
                             <Tooltip title="Sair" arrow>
                                 <IconButton
                                     color="inherit" onClick={handleLogout} sx={{ '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.1)' } }}
@@ -128,16 +134,14 @@ const Navbar = () => {
                                 </IconButton>
                             </Tooltip>
                         </Box>
-
                         {/* Menu Mobile - xs e abaixo */}
                         <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', gap: 1 }}>
-                            <Tooltip title="Perfil" arrow>
-                                <IconButton color="inherit">
-                                    <Avatar sx={{ width: 32, height: 32, bgcolor: '#f59e0b' }}>
-                                        <AccountCircle />
-                                    </Avatar>
-                                </IconButton>
-                            </Tooltip>
+                            {/* Menu de perfil - recebe user de useAuth e mostra a primeira letra do nome */}
+                            <IconButton color="inherit" onClick={handleProfileMenuOpen}>
+                                <Avatar sx={{ width: 32, height: 32, bgcolor: '#f59e0b' }}>
+                                    {user?.nome ? user.nome.charAt(0).toUpperCase() : <AccountCircle />}
+                                </Avatar>
+                            </IconButton>
                             <IconButton
                                 color="inherit" onClick={handleDrawerToggle} sx={{ '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' } }}
                             >
@@ -158,6 +162,9 @@ const Navbar = () => {
             >
                 {drawer}
             </Drawer>
+
+            {/* Menu de Perfil Dropdown */}
+            <UserProfile anchorEl={profileAnchorEl} onClose={handleProfileMenuClose} />
         </AppBar>
     );
 };
