@@ -1,22 +1,25 @@
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Card, CardContent, Box, Typography, Divider, Chip } from '@mui/material';
 import { FiberNew } from '@mui/icons-material';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/common/PageLayout';
 import ActionButtons from '../components/common/ActionButtons';
+import FuncionarioFilters from '../components/common/FuncionarioFilters';
+import Pagination from '../components/common/Pagination';
 import showConfirm from '../utils/confirm';
 import showSnackbar from '../utils/snackbar';
-import { getGrupoInfo, USER_GROUPS } from '../constants/userGroups';
+import { getGrupoInfo } from '../constants/userGroups';
 import { useMasks } from '../hooks/useMasks';
+import { funcionarioService } from '../services/funcionarioService';
 
 function FuncionarioList() {
     const navigate = useNavigate();
     const { applyCpfMask, applyPhoneMask } = useMasks();
-
-    const funcionarios = [
-        { id: 1, nome: 'João da Silva', cpf: '12345678900', matricula: 1, telefone: '11987654321', grupo: USER_GROUPS.ADMINISTRADOR },
-        { id: 2, nome: 'Maria Oliveira', cpf: '98765432111', matricula: 2, telefone: '11912345678', grupo: USER_GROUPS.ATENDENTE },
-        { id: 3, nome: 'Carlos Souza', cpf: '22222222222', matricula: 3, telefone: '22232222222', grupo: USER_GROUPS.CAIXA },
-    ];
+    const [funcionarios, setFuncionarios] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [filters, setFilters] = useState({});
+    const [pagination, setPagination] = useState({ skip: 0, limit: 3, currentPage: 1 });
+    const [hasItems, setHasItems] = useState(true);
 
     const actions = (
         <Button variant="contained" color="primary" onClick={() => navigate('/funcionario')} startIcon={<FiberNew />} sx={{ fontWeight: 600, px: 2, py: 1 }}>
@@ -26,16 +29,60 @@ function FuncionarioList() {
 
     const handleView = (funcionario) => navigate(`/funcionario/view/${funcionario.id}`);
     const handleEdit = (funcionario) => navigate(`/funcionario/edit/${funcionario.id}`);
+
+    const handleFilter = (newFilters) => {
+        setFilters(newFilters);
+        setPagination(prev => ({ ...prev, skip: 0, currentPage: 1 }));
+    };
+
+    const handleClearFilters = () => {
+        setFilters({});
+        setPagination(prev => ({ ...prev, skip: 0, currentPage: 1 }));
+    };
+
+    const handlePageChange = (newPage) => {
+        const newSkip = (newPage - 1) * pagination.limit;
+        setPagination(prev => ({ ...prev, skip: newSkip, currentPage: newPage }));
+    };
+
+    const handleItemsPerPageChange = (newLimit) => {
+        setPagination(prev => ({ ...prev, limit: newLimit, skip: 0, currentPage: 1 }));
+    };
+
     const handleDelete = (funcionario) => {
         showConfirm(
             'Excluir Funcionário',
             `Tem certeza que deseja excluir o funcionário "${funcionario.nome}"?`,
-            () => {
-                console.log('Excluir funcionário:', funcionario);
-                showSnackbar('Funcionário excluído com sucesso!', 'success');
+            async () => {
+                try {
+                    await funcionarioService.delete(funcionario.id);
+                    setFuncionarios(prev => prev.filter(item => item.id !== funcionario.id));
+                    showSnackbar('Funcionário excluído com sucesso!', 'success');
+                } catch (error) {
+                    showSnackbar('Erro ao excluir funcionário', 'error');
+                }
             }
         );
     };
+
+    useEffect(() => {
+        const loadFuncionarios = async () => {
+            try {
+                setLoading(true);
+                const params = { skip: pagination.skip, limit: pagination.limit, ...filters };
+                const response = await funcionarioService.list(params);
+                const funcionariosData = response.data || response.items || response || [];
+                setFuncionarios(funcionariosData);
+                setHasItems(funcionariosData && funcionariosData.length > 0);
+            } catch (error) {
+                showSnackbar('Erro ao carregar funcionários', 'error');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadFuncionarios();
+    }, [pagination.skip, pagination.limit, filters]);
 
     const renderGrupo = (grupo) => {
         const grupoInfo = getGrupoInfo(grupo);
@@ -115,6 +162,8 @@ function FuncionarioList() {
 
     return (
         <PageLayout title="Funcionários" actions={actions}>
+            <FuncionarioFilters onFilter={handleFilter} onClear={handleClearFilters} filters={filters} />
+
             <Box sx={{ display: { xs: 'none', md: 'block' } }}>
                 <TableContainer component={Paper} sx={{ borderRadius: 2, overflow: 'hidden' }}>
                     <Table>
@@ -151,6 +200,15 @@ function FuncionarioList() {
             <Box sx={{ display: { xs: 'block', md: 'none' } }}>
                 {funcionarios.map((funcionario) => renderMobileCard(funcionario))}
             </Box>
+
+            <Pagination
+                currentPage={pagination.currentPage}
+                itemsPerPage={pagination.limit}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleItemsPerPageChange}
+                loading={loading}
+                hasItems={hasItems}
+            />
         </PageLayout>
     );
 }

@@ -11,7 +11,7 @@ const API_ENDPOINTS = {
         LOGOUT: '/auth/logout', // POST - logout de usuário
     },
     FUNCIONARIO: {
-        LIST: '/funcionarios', // GET - lista todos os funcionários
+        LIST: '/funcionario/', // GET - lista todos os funcionários
         GET: '/funcionario/:id', // GET - buscar funcionário por id
         CREATE: '/funcionario/', // POST - criar funcionário
         UPDATE: '/funcionario/:id', // PUT - atualizar funcionário
@@ -59,3 +59,4 @@ const API_ENDPOINTS = {
 export const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 export const TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT) || 15000; // 15 segundos
 export { API_ENDPOINTS };
+
