@@ -14,6 +14,7 @@ const ClienteList = lazy(() => import("../pages/ClienteList"));
 const ClienteForm = lazy(() => import("../pages/ClienteForm"));
 const ProdutoList = lazy(() => import("../pages/ProdutoList"));
 const ProdutoForm = lazy(() => import("../pages/ProdutoForm"));
+const ProdutoListPublic = lazy(() => import("../pages/ProdutoListPublic.jsx"));
 const LoginForm = lazy(() => import("../components/forms/LoginForm"));
 const NotFound = lazy(() => import("../pages/NotFound"));
 
@@ -33,7 +34,7 @@ const AppRoutes = () => {
                 <Route path="/" element={<Navigate to="/login" replace />} />
                 
                 {/* Rotas públicas - sem necessidade de autenticação */}
-                <Route path="/produtos/publica" element={<ProdutoList />} />
+                <Route path="/produtos/publica" element={<ProdutoListPublic />} />
                 
                 {/* Rotas restritas - somente se não estiver logado */}
                 <Route path="/login" element={<RestrictedRoute><LoginForm /></RestrictedRoute>} />
@@ -42,6 +43,8 @@ const AppRoutes = () => {
                 <Route path="/home" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
                 <Route path="/produtos" element={<PrivateRoute><ProdutoList /></PrivateRoute>} />
                 <Route path="/produto" element={<PrivateRoute><ProdutoForm /></PrivateRoute>} />
+                {/* Rota para editar ou visualizar com opr {view ou edit} e id dinâmico */}
+                <Route path="/produto/:opr/:id" element={<PrivateRoute><ProdutoForm /></PrivateRoute>} />
                 <Route path="/funcionarios" element={<PrivateRoute><FuncionarioList /></PrivateRoute>} />
                 <Route path="/funcionario" element={<PrivateRoute><FuncionarioForm /></PrivateRoute>} />
                 <Route path="/clientes" element={<PrivateRoute><ClienteList /></PrivateRoute>} />
