@@ -163,7 +163,7 @@ const FuncionarioForm = () => {
                                 }}
                                 onBlur={() => {
                                     field.onBlur();
-                                    if (!isReadOnly) {
+                                    if (!isReadOnly && field.value?.length === 11) {
                                         validateCpf(field.value);
                                     }
                                 }}

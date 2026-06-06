@@ -1,18 +1,24 @@
+import { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Card, CardContent, Box, Typography, Divider } from '@mui/material';
 import { FiberNew } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import PageLayout from "../components/common/PageLayout";
-import ActionButtons from "../components/common/ActionButtons";
+import PageLayout from '../components/common/PageLayout';
+import ActionButtons from '../components/common/ActionButtons';
+import ClienteFilters from '../components/common/ClienteFilters';
+import Pagination from '../components/common/Pagination';
 import showConfirm from '../utils/confirm';
 import showSnackbar from '../utils/snackbar';
+import { useMasks } from '../hooks/useMasks';
+import { clienteService } from '../services/clienteService';
 
 function ClienteList() {
     const navigate = useNavigate();
-
-    const clientes = [
-        { id: 1, nome: 'João da Silva', cpf: '123.456.789-00', telefone: '(11) 98765-4321' },
-        { id: 2, nome: 'Maria Oliveira', cpf: '987.654.321-11', telefone: '(11) 91234-5678' }
-    ];
+    const { applyCpfMask, applyPhoneMask } = useMasks();
+    const [clientes, setClientes] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [filters, setFilters] = useState({});
+    const [pagination, setPagination] = useState({ skip: 0, limit: 3, currentPage: 1 });
+    const [hasItems, setHasItems] = useState(true);
 
     const actions = (
         <Button variant="contained" color="primary" onClick={() => navigate('/cliente')} startIcon={<FiberNew />} sx={{ fontWeight: 600, px: 2, py: 1 }}>
@@ -20,40 +26,80 @@ function ClienteList() {
         </Button>
     );
 
-    const handleView = (cliente) => console.log("Visualizar cliente:", cliente);
-    const handleEdit = (cliente) => navigate(`/cliente/${cliente.id}`);
+    const handleView = (cliente) => navigate(`/cliente/view/${cliente.id}`);
+    const handleEdit = (cliente) => navigate(`/cliente/edit/${cliente.id}`);
+
+    const handleFilter = (newFilters) => {
+        setFilters(newFilters);
+        setPagination(prev => ({ ...prev, skip: 0, currentPage: 1 }));
+    };
+
+    const handleClearFilters = () => {
+        setFilters({});
+        setPagination(prev => ({ ...prev, skip: 0, currentPage: 1 }));
+    };
+
+    const handlePageChange = (newPage) => {
+        const newSkip = (newPage - 1) * pagination.limit;
+        setPagination(prev => ({ ...prev, skip: newSkip, currentPage: newPage }));
+    };
+
+    const handleItemsPerPageChange = (newLimit) => {
+        setPagination(prev => ({ ...prev, limit: newLimit, skip: 0, currentPage: 1 }));
+    };
+
     const handleDelete = (cliente) => {
         showConfirm(
             'Excluir Cliente',
             `Tem certeza que deseja excluir o cliente "${cliente.nome}"?`,
-            () => {
-                console.log("Excluir cliente:", cliente);
-                showSnackbar('Cliente excluído com sucesso!', 'success');
+            async () => {
+                try {
+                    await clienteService.delete(cliente.id);
+                    setClientes(prev => prev.filter(item => item.id !== cliente.id));
+                    showSnackbar('Cliente excluído com sucesso!', 'success');
+                } catch (error) {
+                    showSnackbar('Erro ao excluir cliente', 'error');
+                }
             }
         );
     };
-    
-    // criação de array de colunas para a tabela, onde cada coluna tem um campo (field) e um nome de cabeçalho (headerName). O campo 'actions' é especial, pois tem uma função renderCell que renderiza os botões de ação para cada linha da tabela.
+
+    useEffect(() => {
+        const loadClientes = async () => {
+            try {
+                setLoading(true);
+                const params = { skip: pagination.skip, limit: pagination.limit, ...filters };
+                const response = await clienteService.list(params);
+                const clientesData = response.data || response.items || response || [];
+                setClientes(clientesData);
+                setHasItems(clientesData && clientesData.length > 0);
+            } catch (error) {
+                showSnackbar('Erro ao carregar clientes', 'error');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadClientes();
+    }, [pagination.skip, pagination.limit, filters]);
+
     const columns = [
         { field: 'id', headerName: 'ID' },
         { field: 'nome', headerName: 'Nome' },
         { field: 'cpf', headerName: 'CPF' },
         { field: 'telefone', headerName: 'Telefone' },
-        { field: 'actions', headerName: 'Ações', renderCell: (params) => <ActionButtons onView={handleView} onEdit={handleEdit} onDelete={handleDelete} item={params.row}/>}
-        // O renderCell é uma função que recebe os parâmetros da célula e retorna o componente ActionButtons com as funções de visualização, edição e exclusão associadas ao item correspondente da linha.
+        { field: 'actions', headerName: 'Ações' },
     ];
 
-    // Função para renderizar uma linha da tabela em desktop
-    // A função renderDesktopRow tem um card pra mobile, o que permite o responsivo
     const renderDesktopRow = (cliente) => (
         <TableRow key={cliente.id} hover>
             {columns.map((column, index) => {
                 if (column.field === 'id') return <TableCell key={index}>{cliente.id}</TableCell>;
                 if (column.field === 'nome') return <TableCell key={index} sx={{ fontWeight: 500 }}>{cliente.nome}</TableCell>;
-                if (column.field === 'cpf') return <TableCell key={index}>{cliente.cpf}</TableCell>;
-                if (column.field === 'telefone') return <TableCell key={index}>{cliente.telefone}</TableCell>;
+                if (column.field === 'cpf') return <TableCell key={index}>{applyCpfMask(cliente.cpf)}</TableCell>;
+                if (column.field === 'telefone') return <TableCell key={index}>{applyPhoneMask(cliente.telefone)}</TableCell>;
                 if (column.field === 'actions') return (
-                    <TableCell key={index}>
+                    <TableCell key={index} align="center">
                         <ActionButtons onView={handleView} onEdit={handleEdit} onDelete={handleDelete} item={cliente} />
                     </TableCell>
                 );
@@ -62,26 +108,32 @@ function ClienteList() {
         </TableRow>
     );
 
-    // Função para renderizar um card em mobile
+    const renderMobileInfo = (label, value) => (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: 1 }}>
+            <Typography variant="body2" color="text.secondary">{label}:</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 500, textAlign: 'right' }}>{value}</Typography>
+        </Box>
+    );
+
     const renderMobileCard = (cliente) => (
         <Card key={cliente.id} sx={{ mb: 2, elevation: 2 }}>
             <CardContent sx={{ p: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Box sx={{ width: 60, height: 60, borderRadius: 2, overflow: 'hidden', backgroundColor: 'grey.100' }}>
-                            <img src={cliente.foto} alt={cliente.nome} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        </Box>
-                        <Box>
-                            <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 600 }}>
-                                {cliente.nome}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                ID: {cliente.id}
-                            </Typography>
-                        </Box>
-                    </Box>
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 600 }}>
+                        {cliente.nome}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        ID: {cliente.id}
+                    </Typography>
                 </Box>
+
                 <Divider sx={{ mb: 2 }} />
+
+                <Box sx={{ mb: 2 }}>
+                    {renderMobileInfo('CPF', applyCpfMask(cliente.cpf))}
+                    {renderMobileInfo('Telefone', applyPhoneMask(cliente.telefone))}
+                </Box>
+
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <ActionButtons
                         item={cliente}
@@ -93,35 +145,28 @@ function ClienteList() {
             </CardContent>
         </Card>
     );
-    
-    // Renderizar a tabela em desktop e os cards em mobile
+
     return (
         <PageLayout title="Clientes" actions={actions}>
+            <ClienteFilters onFilter={handleFilter} onClear={handleClearFilters} filters={filters} />
+
             <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-                {/* Adicionado o borderradius para arredondar os cantos igual ao box do título*/}
                 <TableContainer component={Paper} sx={{ borderRadius: 2, overflow: 'hidden' }}>
-                    
-                    {/* Adicionado o backgroundColor para ficar azul igual ao título*/}
                     <Table>
                         <TableHead sx={{ backgroundColor: 'primary.main' }}>
-
                             <TableRow>
                                 {columns.map((column, index) => (
-                                <TableCell 
-                                // Basicamente, isso deixa a coluna de ações mais centralizada e bonita
-                                // o color: white é para deixar o texto branco, já que o background é azul,
-                                // e o fontWeight: 600 é para deixar o texto mais negrito e destacado
-                                    key={index} 
-                                    align={column.field === 'actions' ? 'center' : 'left'} 
-                                    sx={{ color: 'white', fontWeight: 600, width: column.field === 'actions' ? 140 : 'auto' }}
-                                >
-                                    {column.headerName || column.header}
-                                </TableCell>
+                                    <TableCell
+                                        key={index}
+                                        align={column.field === 'actions' ? 'center' : 'left'}
+                                        sx={{ color: 'white', fontWeight: 600, width: column.field === 'actions' ? 140 : 'auto' }}
+                                    >
+                                        {column.headerName}
+                                    </TableCell>
                                 ))}
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {/* Adicionado a verificação de registros vazios e aí sim vem o map */}
                             {clientes.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={columns.length} align="center" sx={{ py: 3 }}>
@@ -137,9 +182,19 @@ function ClienteList() {
                     </Table>
                 </TableContainer>
             </Box>
+
             <Box sx={{ display: { xs: 'block', md: 'none' } }}>
                 {clientes.map((cliente) => renderMobileCard(cliente))}
             </Box>
+
+            <Pagination
+                currentPage={pagination.currentPage}
+                itemsPerPage={pagination.limit}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleItemsPerPageChange}
+                loading={loading}
+                hasItems={hasItems}
+            />
         </PageLayout>
     );
 }
