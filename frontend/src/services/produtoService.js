@@ -66,15 +66,15 @@ export const produtoService = {
         return response.data;
     },
 
-    // Verificar se CPF já existe
-    checkCpfExists: async (cpf, excludeId = null) => {
-    const params = { cpf };
+    // Verificar se nome já existe
+    checkNomeExists: async (nome, excludeId = null) => {
+    const params = { nome };
     if (excludeId) {
         params.exclude_id = excludeId;
     }
-    const response = await api.get(`${FUNCIONARIO.LIST}?${new URLSearchParams(params).toString()}`);
-    const funcionarios = response.data || response;
-    return funcionarios.length > 0 ? funcionarios[0] : null;
+    const response = await api.get(`${PRODUTO.LIST}?${new URLSearchParams(params).toString()}`);
+    const produtos = response.data || response;
+    return produtos.length > 0 ? produtos[0] : null;
     },
 };
 
