@@ -1,0 +1,20 @@
+import { API_ENDPOINTS } from '../config/apiConfig';
+import api from './api';
+
+const { FUNCIONARIO } = API_ENDPOINTS;
+
+export const funcionarioService = {
+    checkCpfExists: async (cpf, excludeId = null) => {
+        const params = { cpf };
+        if (excludeId) {
+            params.exclude_id = excludeId;
+        }
+
+        const response = await api.get(`${FUNCIONARIO.LIST}?${new URLSearchParams(params).toString()}`);
+        const funcionarios = response.data?.items || response.data || [];
+
+        return funcionarios.length > 0 ? funcionarios[0] : null;
+    },
+};
+
+export default funcionarioService;
