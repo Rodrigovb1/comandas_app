@@ -56,18 +56,20 @@ const FuncionarioFilters = ({ onFilter, onClear, filters: externalFilters = {} }
             <AccordionDetails>
                 <Box sx={{ width: '100%' }}>
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 2 }}>
-                        <TextField fullWidth label="ID" value={filters.id} onChange={handleInputChange('id')} placeholder="Buscar por ID..." type="number" size="small" />
-                        <TextField fullWidth label="Nome" value={filters.nome} onChange={handleInputChange('nome')} placeholder="Buscar por nome..." size="small" />
-                        <TextField fullWidth label="CPF" value={filters.cpf} onChange={handleInputChange('cpf')} placeholder="Buscar por CPF..." size="small" />
-                        <TextField fullWidth label="Matrícula" value={filters.matricula} onChange={handleInputChange('matricula')} placeholder="Buscar por matrícula..." type="number" size="small" />
-                        <TextField fullWidth label="Telefone" value={filters.telefone} onChange={handleInputChange('telefone')} placeholder="Buscar por telefone..." size="small" />
+                        <TextField id="funcionario-filter-id" fullWidth label="ID" value={filters.id} onChange={handleInputChange('id')} placeholder="Buscar por ID..." type="number" size="small" />
+                        <TextField id="funcionario-filter-nome" fullWidth label="Nome" value={filters.nome} onChange={handleInputChange('nome')} placeholder="Buscar por nome..." size="small" />
+                        <TextField id="funcionario-filter-cpf" fullWidth label="CPF" value={filters.cpf} onChange={handleInputChange('cpf')} placeholder="Buscar por CPF..." size="small" />
+                        <TextField id="funcionario-filter-matricula" fullWidth label="Matrícula" value={filters.matricula} onChange={handleInputChange('matricula')} placeholder="Buscar por matrícula..." type="number" size="small" />
+                        <TextField id="funcionario-filter-telefone" fullWidth label="Telefone" value={filters.telefone} onChange={handleInputChange('telefone')} placeholder="Buscar por telefone..." size="small" />
                         <FormControl fullWidth size="small">
-                            <InputLabel id="grupo-filter-label">Grupo</InputLabel>
+                            <InputLabel id="funcionario-filter-grupo-label" htmlFor="funcionario-filter-grupo-input">Grupo</InputLabel>
                             <Select
-                                labelId="grupo-filter-label"
+                                labelId="funcionario-filter-grupo-label"
+                                id="funcionario-filter-grupo"
                                 label="Grupo"
                                 value={filters.grupo}
                                 onChange={handleInputChange('grupo')}
+                                inputProps={{ id: 'funcionario-filter-grupo-input' }}
                             >
                                 <MenuItem value="">Todos</MenuItem>
                                 {GROUP_OPTIONS.map(option => (

@@ -138,7 +138,7 @@ const FuncionarioForm = () => {
                         defaultValue=""
                         rules={validationRules.nome}
                         render={({ field }) => (
-                            <TextField {...field} disabled={isReadOnly} label="Nome" fullWidth margin="normal" error={!!errors.nome} helperText={errors.nome?.message} />
+                            <TextField id="funcionario-nome" {...field} disabled={isReadOnly} label="Nome" fullWidth margin="normal" error={!!errors.nome} helperText={errors.nome?.message} />
                         )}
                     />
 
@@ -150,6 +150,7 @@ const FuncionarioForm = () => {
                         render={({ field }) => (
                             <TextField
                                 {...field}
+                                id="funcionario-cpf"
                                 disabled={isReadOnly}
                                 label="CPF"
                                 fullWidth
@@ -178,7 +179,7 @@ const FuncionarioForm = () => {
                         defaultValue=""
                         rules={validationRules.matricula}
                         render={({ field }) => (
-                            <TextField {...field} disabled={isReadOnly} label="Matrícula" fullWidth margin="normal" type="number" error={!!errors.matricula} helperText={errors.matricula?.message} />
+                            <TextField id="funcionario-matricula" {...field} disabled={isReadOnly} label="Matrícula" fullWidth margin="normal" type="number" error={!!errors.matricula} helperText={errors.matricula?.message} />
                         )}
                     />
 
@@ -190,6 +191,7 @@ const FuncionarioForm = () => {
                         render={({ field }) => (
                             <TextField
                                 {...field}
+                                id="funcionario-telefone"
                                 disabled={isReadOnly}
                                 label="Telefone"
                                 fullWidth
@@ -213,12 +215,13 @@ const FuncionarioForm = () => {
                         rules={validationRules.grupo}
                         render={({ field }) => (
                             <FormControl fullWidth margin="normal" error={!!errors.grupo} disabled={isReadOnly}>
-                                <InputLabel id="funcionario-grupo-label">Grupo</InputLabel>
+                                <InputLabel id="funcionario-grupo-label" htmlFor="funcionario-grupo-input">Grupo</InputLabel>
                                 <Select
                                     {...field}
                                     labelId="funcionario-grupo-label"
                                     id="funcionario-grupo"
                                     label="Grupo"
+                                    inputProps={{ id: 'funcionario-grupo-input' }}
                                 >
                                     {GROUP_OPTIONS.map(option => (
                                         <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
@@ -242,6 +245,7 @@ const FuncionarioForm = () => {
                             render={({ field }) => (
                                 <TextField
                                     {...field}
+                                    id="funcionario-senha"
                                     label={id ? 'Nova senha' : 'Senha'}
                                     fullWidth
                                     margin="normal"
