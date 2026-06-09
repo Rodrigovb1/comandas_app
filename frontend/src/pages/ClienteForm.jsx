@@ -8,6 +8,8 @@ import { useValidationRules } from '../hooks/useValidationRules';
 import { useMasks } from '../hooks/useMasks';
 import { clienteService } from '../services/clienteService';
 import showSnackbar from '../utils/snackbar';
+import { useAuth } from '../context/AuthContext';
+import { USER_GROUPS } from '../constants/userGroups';
 
 const ClienteForm = () => {
     const { id, opr } = useParams();
@@ -16,6 +18,7 @@ const ClienteForm = () => {
     const validationRules = useValidationRules();
     const { applyCpfMask, cleanCpf, applyPhoneMask, cleanPhone } = useMasks();
     const { dialog: cpfDialog, validateField: validateCpf, closeDialog } = useFieldValidation(clienteService, id, 'checkCpfExists');
+    const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
 
@@ -85,6 +88,12 @@ const ClienteForm = () => {
     };
 
     useEffect(() => {
+        if (opr !== 'view' && user?.grupo !== USER_GROUPS.ADMINISTRADOR && user?.grupo !== USER_GROUPS.CAIXA) {
+            showSnackbar('Acesso negado: Apenas administradores e caixas podem cadastrar ou editar clientes.', 'warning');
+            navigate('/clientes');
+            return;
+        }
+
         const loadCliente = async () => {
             if (id) {
                 try {
@@ -108,7 +117,7 @@ const ClienteForm = () => {
         };
 
         loadCliente();
-    }, [id, navigate, reset]);
+    }, [id, opr, user, navigate, reset]);
 
     return (
         <PageLayout title={title}>

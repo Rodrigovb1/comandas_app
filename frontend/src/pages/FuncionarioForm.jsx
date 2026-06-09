@@ -6,9 +6,10 @@ import UniqueValidator, { useFieldValidation } from '../components/common/Unique
 import PageLayout from '../components/common/PageLayout';
 import { useValidationRules } from '../hooks/useValidationRules';
 import { useMasks } from '../hooks/useMasks';
-import { GROUP_OPTIONS } from '../constants/userGroups';
+import { GROUP_OPTIONS, USER_GROUPS } from '../constants/userGroups';
 import { funcionarioService } from '../services/funcionarioService';
 import showSnackbar from '../utils/snackbar';
+import { useAuth } from '../context/AuthContext';
 
 const FuncionarioForm = () => {
     const { id, opr } = useParams();
@@ -17,6 +18,7 @@ const FuncionarioForm = () => {
     const validationRules = useValidationRules();
     const { applyCpfMask, cleanCpf, applyPhoneMask, cleanPhone } = useMasks();
     const { dialog: cpfDialog, validateField: validateCpf, closeDialog } = useFieldValidation(funcionarioService, id, 'checkCpfExists');
+    const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
 
@@ -91,6 +93,12 @@ const FuncionarioForm = () => {
     };
 
     useEffect(() => {
+        if (opr !== 'view' && user?.grupo !== USER_GROUPS.ADMINISTRADOR) {
+            showSnackbar('Acesso negado: Apenas administradores podem cadastrar ou editar funcionários.', 'warning');
+            navigate('/home');
+            return;
+        }
+
         const loadFuncionario = async () => {
             if (id) {
                 try {
@@ -116,7 +124,7 @@ const FuncionarioForm = () => {
         };
 
         loadFuncionario();
-    }, [id, navigate, reset]);
+    }, [id, opr, user, navigate, reset]);
 
     return (
         <PageLayout title={title}>

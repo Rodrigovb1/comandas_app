@@ -48,8 +48,8 @@ const AppRoutes = () => {
                 <Route path="/produto" element={<PrivateRoute><ProdutoForm /></PrivateRoute>} />
                 {/* Rota para editar ou visualizar com opr {view ou edit} e id dinâmico */}
                 <Route path="/produto/:opr/:id" element={<PrivateRoute><ProdutoForm /></PrivateRoute>} />
-                <Route path="/funcionarios" element={<PrivateRoute><FuncionarioList /></PrivateRoute>} />
-                <Route path="/funcionario" element={<PrivateRoute><FuncionarioForm /></PrivateRoute>} />
+                <Route path="/funcionarios" element={<PrivateRoute allowedGroups={[1]}><FuncionarioList /></PrivateRoute>} />
+                <Route path="/funcionario" element={<PrivateRoute allowedGroups={[1]}><FuncionarioForm /></PrivateRoute>} />
                 <Route path="/funcionario/:opr/:id" element={<PrivateRoute><FuncionarioForm /></PrivateRoute>} />
                 <Route path="/clientes" element={<PrivateRoute><ClienteList /></PrivateRoute>} />
                 <Route path="/cliente" element={<PrivateRoute><ClienteForm /></PrivateRoute>} />
@@ -58,7 +58,9 @@ const AppRoutes = () => {
                 <Route path="/comanda" element={<PrivateRoute><ComandaForm /></PrivateRoute>} />
                 <Route path="/comanda/:opr/:id" element={<PrivateRoute><ComandaForm /></PrivateRoute>} />
                 <Route path="/comanda/consumo/:id" element={<PrivateRoute><ComandaConsumoForm /></PrivateRoute>} />
-                
+
+                {/* <Route path="/caixa" element={<PrivateRoute allowedGroups={[1, 3]}><Caixa /></PrivateRoute>} /> */}
+
                 {/* Rota para páginas não encontradas */}
                 <Route path="*" element={<NotFound />} />
             </Routes>

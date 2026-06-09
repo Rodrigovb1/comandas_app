@@ -9,6 +9,7 @@ import showSnackbar from '../utils/snackbar';
 import { useAuth } from '../context/AuthContext';
 import ComandaValidator, { useComandaValidation } from '../components/common/ComandaValidator';
 import { formatLocalDateTime, getCurrentLocalDateTimeInputValue, toDateTimeInputValue } from '../utils/dateTime';
+import { USER_GROUPS } from '../constants/userGroups';
 
 // Definição do componente ComandaForm
 const ComandaForm = () => {
@@ -66,6 +67,12 @@ const ComandaForm = () => {
 
     // Carregar dados da comanda para edição/visualização
     useEffect(() => {
+        if (id && id !== 'new' && opr !== 'view' && user?.grupo !== USER_GROUPS.ADMINISTRADOR) {
+            showSnackbar('Acesso negado: Apenas administradores podem editar comandas.', 'warning');
+            navigate('/comandas');
+            return;
+        }
+
         const loadComanda = async () => {
             if (id && id !== 'new') {
                 try {
@@ -92,7 +99,7 @@ const ComandaForm = () => {
         };
 
         loadComanda();
-    }, [id, reset]);
+    }, [id, reset, opr, user, navigate]);
 
     // Função de salvamento
     const onSubmit = async (data) => {
@@ -246,3 +253,4 @@ const ComandaForm = () => {
     );
 };
 export default ComandaForm;
+

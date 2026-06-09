@@ -9,9 +9,13 @@ import Pagination from '../components/common/Pagination';
 import { produtoService } from '../services/produtoService';
 import showSnackbar from '../utils/snackbar';
 import showConfirm from '../utils/confirm';
+import { useAuth } from '../context/AuthContext';
+import { USER_GROUPS } from '../constants/userGroups';
 
 function ProdutoList() {
+    // Hook de autenticação
     const navigate = useNavigate();
+    const { user } = useAuth();
 
     // Estados do componente
     const [produtos, setProdutos] = useState([]); // Lista de produtos da API
@@ -67,11 +71,11 @@ function ProdutoList() {
     const formatCurrency = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
     
     // Configuração de ações da página
-    const actions = (
+    const actions = user?.grupo === USER_GROUPS.ADMINISTRADOR ? (
         <Button variant="contained" color="primary" onClick={() => navigate('/produto')} startIcon={<FiberNew />} sx={{ fontWeight: 600, px: 2, py: 1 }}>
             Novo
         </Button>
-    );
+    ) : null;
 
     // Efeito para carregar produtos
     useEffect(() => {
@@ -132,7 +136,12 @@ function ProdutoList() {
                 if (column.field === 'valor_unitario') return <TableCell key={index} sx={{ fontWeight: 600, color: 'success.main'}}>{formatCurrency(produto.valor_unitario)}</TableCell>;
                 if (column.field === 'actions') return (
                     <TableCell key={index}>
-                        <ActionButtons onView={handleView} onEdit={handleEdit} onDelete={handleDelete} item={produto} />
+                        <ActionButtons
+                            onView={handleView}
+                            onEdit={user?.grupo === USER_GROUPS.ADMINISTRADOR ? handleEdit : null}
+                            onDelete={user?.grupo === USER_GROUPS.ADMINISTRADOR ? handleDelete : null}
+                            item={produto}
+                        />
                     </TableCell>
                 );
                 return null;
@@ -190,8 +199,8 @@ function ProdutoList() {
                     <ActionButtons
                         item={produto}
                         onView={handleView}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
+                        onEdit={user?.grupo === USER_GROUPS.ADMINISTRADOR ? handleEdit : null}
+                        onDelete={user?.grupo === USER_GROUPS.ADMINISTRADOR ? handleDelete : null}
                     />
                 </Box>
             </CardContent>

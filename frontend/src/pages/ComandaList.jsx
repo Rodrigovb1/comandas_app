@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableRow, TableContainer, Paper, Box, Button, Chip, Typography, Card, CardContent, Divider, IconButton } from '@mui/material';
-import { FiberNew, ShoppingCart as CartIcon, Cancel as CancelIcon, AddCircle, Visibility, Edit, Delete } from '@mui/icons-material';
+import { FiberNew, Cancel as CancelIcon, AddCircle, Visibility, Edit, Delete } from '@mui/icons-material';
 import PageLayout from '../components/common/PageLayout';
 import ActionButtons from '../components/common/ActionButtons';
 import comandaService from '../services/comandaService';
@@ -11,11 +11,15 @@ import showConfirm from '../utils/confirm';
 import Pagination from '../components/common/Pagination';
 import ComandaFilters from '../components/common/ComandaFilters';
 import { formatLocalDateTime } from '../utils/dateTime';
+import { useAuth } from '../context/AuthContext';
+import { USER_GROUPS } from '../constants/userGroups';
 
 // Definição do componente ComandaList
 function ComandaList() {
-    // Hook de navegação
+    // Hook de autenticação
     const navigate = useNavigate();
+    const { user } = useAuth();
+    
     // Estados do componente
     const [comandas, setComandas] = useState([]); // Lista de comandas da API
     const [loading, setLoading] = useState(true); // Estado de carregamento
@@ -136,19 +140,26 @@ function ComandaList() {
                 </TableCell>
                 <TableCell>
                     {/* ActionButtons recebe os botoes de onView, onEdit e onDelete, e via composição inclui os específicos de Comandas, como adicionar consumo e cancelar */}
-                    <ActionButtons onView={handleView} onEdit={handleEdit} onDelete={handleDelete} item={comanda}>
+                    <ActionButtons
+                        onView={handleView}
+                        onEdit={user?.grupo === USER_GROUPS.ADMINISTRADOR ? handleEdit : null}
+                        onDelete={user?.grupo === USER_GROUPS.ADMINISTRADOR ? handleDelete : null}
+                        item={comanda}
+                    >
                         <IconButton size="small" color="success" title="Adicionar Consumo"
                             sx={{ width: 40, height: 40, '&:hover': { backgroundColor: 'success.light', color: 'white' } }}
                             onClick={() => handleAddItem(comanda)}
                         >
                             <AddCircle fontSize="small" />
                         </IconButton>
-                        <IconButton size="small" color="warning" title="Cancelar Comanda"
-                            sx={{ width: 40, height: 40, '&:hover': { backgroundColor: 'warning.light', color: 'white' } }}
-                            onClick={() => handleCancel(comanda)}
-                        >
-                            <CancelIcon fontSize="small" />
-                        </IconButton>
+                        {user?.grupo === USER_GROUPS.ADMINISTRADOR && (
+                            <IconButton size="small" color="warning" title="Cancelar Comanda"
+                                sx={{ width: 40, height: 40, '&:hover': { backgroundColor: 'warning.light', color: 'white' } }}
+                                onClick={() => handleCancel(comanda)}
+                            >
+                                <CancelIcon fontSize="small" />
+                            </IconButton>
+                        )}
                     </ActionButtons>
                 </TableCell>
             </TableRow>
@@ -190,20 +201,24 @@ function ComandaList() {
                         >
                             <Visibility fontSize="small" />
                         </IconButton>
-                        <IconButton
-                            size="small" color="secondary" title="Editar"
-                            sx={{ width: 40, height: 40, '&:hover': { backgroundColor: 'secondary.light', color: 'white' } }}
-                            onClick={() => handleEdit(comanda)}
-                        >
-                            <Edit fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                            size="small" color="error" title="Excluir"
-                            sx={{ width: 40, height: 40, '&:hover': { backgroundColor: 'error.light', color: 'white' } }}
-                            onClick={() => handleDelete(comanda)}
-                        >
-                            <Delete fontSize="small" />
-                        </IconButton>
+                        {user?.grupo === USER_GROUPS.ADMINISTRADOR && (
+                            <IconButton
+                                size="small" color="secondary" title="Editar"
+                                sx={{ width: 40, height: 40, '&:hover': { backgroundColor: 'secondary.light', color: 'white' } }}
+                                onClick={() => handleEdit(comanda)}
+                            >
+                                <Edit fontSize="small" />
+                            </IconButton>
+                        )}
+                        {user?.grupo === USER_GROUPS.ADMINISTRADOR && (
+                            <IconButton
+                                size="small" color="error" title="Excluir"
+                                sx={{ width: 40, height: 40, '&:hover': { backgroundColor: 'error.light', color: 'white' } }}
+                                onClick={() => handleDelete(comanda)}
+                            >
+                                <Delete fontSize="small" />
+                            </IconButton>
+                        )}
                         <IconButton
                             size="small" color="success" title="Adicionar Consumo"
                             sx={{ width: 40, height: 40, '&:hover': { backgroundColor: 'success.light', color: 'white' } }}
@@ -211,13 +226,15 @@ function ComandaList() {
                         >
                             <AddCircle fontSize="small" />
                         </IconButton>
-                        <IconButton
-                            size="small" color="warning" title="Cancelar Comanda"
-                            sx={{ width: 40, height: 40, '&:hover': { backgroundColor: 'warning.light', color: 'white' } }}
-                            onClick={() => handleCancel(comanda)}
-                        >
-                            <CancelIcon fontSize="small" />
-                        </IconButton>
+                        {user?.grupo === USER_GROUPS.ADMINISTRADOR && (
+                            <IconButton
+                                size="small" color="warning" title="Cancelar Comanda"
+                                sx={{ width: 40, height: 40, '&:hover': { backgroundColor: 'warning.light', color: 'white' } }}
+                                onClick={() => handleCancel(comanda)}
+                            >
+                                <CancelIcon fontSize="small" />
+                            </IconButton>
+                        )}
                     </Box>
                 </CardContent>
             </Card>
